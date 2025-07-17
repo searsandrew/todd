@@ -30,7 +30,9 @@ class PluginServiceProvider extends ServiceProvider
                 $pluginClass = 'App\Plugins\\' . basename($plugin) . '\\' . basename($plugin) . 'Plugin';
                 if (class_exists($pluginClass)) {
                     $pluginInstance = new $pluginClass();
-                    $pluginInstance->register();
+                    if ($this->checkDependencies($pluginInstance)) {
+                        $pluginInstance->register();
+                    }
                 }
             }
         }
@@ -48,5 +50,20 @@ class PluginServiceProvider extends ServiceProvider
                 }
             }
         }
+    }
+
+    protected function checkDependencies($pluginInstance): bool
+    {
+        if (method_exists($pluginInstance, 'dependencies')) {
+            $dependencies = $pluginInstance->dependencies();
+
+            foreach ($dependencies as $dependency) {
+                $pluginClass = 'App\Plugins\\' . basename($dependency) . '\\' . basename($dependency) . 'Plugin';
+                if (class_exists($pluginClass)) continue;
+                return false;
+            }
+        }
+
+        return true;
     }
 }
