@@ -46,4 +46,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function friends(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'pivot_table_name', 'user_1', 'user_2')
+            ->orWhere(function ($query) {
+                $query->where('user_2', $this->id);
+            });
+    }
 }
